@@ -73,6 +73,8 @@ def get_single_book(message: Message):
             bot.register_next_step_handler(msg, get_single_book)
         except Exception as e:
             print(e)
+            msg = bot.send_message(user_id, "List of books:", reply_markup=book_button)
+            bot.register_next_step_handler(msg, get_single_book)
     
 
 def handle_docs(message):
@@ -90,12 +92,31 @@ def handle_docs(message):
         db.add_book(file_name=message.document.file_name, file_id=message.document.file_id)
         try:
             bot.send_message(user_id, "Saved!")
+
+            msg=bot.send_message(
+                user_id,
+                hello_message_for_lord,
+                reply_markup=main_btn,
+                parse_mode='html')
+            bot.register_next_step_handler(msg, main_handler)
         except Exception as e:
             bot.send_message(user_id, str(e))
+
+            msg=bot.send_message(
+                user_id,
+                hello_message_for_lord,
+                reply_markup=main_btn,
+                parse_mode='html')
+            bot.register_next_step_handler(msg, main_handler)
     else:
         bot.send_message(user_id, 
-            "<b>Error:</b> <code>Message format not a document!</code>",
+            "<b>Error: </b> <code>Message format not a document!</code>",
             parse_mode='html')
+        msg = bot.send_message(user_id, 
+            "Send me a <b>book!</b>",
+            reply_markup=exit_btn,
+            parse_mode='html')
+        bot.register_next_step_handler(msg, handle_docs)
 
 
 
@@ -157,7 +178,7 @@ def add_music(message):
             bot.register_next_step_handler(msg, main_handler)
         except Exception as e:
             bot.send_message(user_id, str(e))
-            
+
             msg=bot.send_message(
                 user_id,
                 hello_message_for_lord,
@@ -166,8 +187,13 @@ def add_music(message):
             bot.register_next_step_handler(msg, main_handler)
     else:
         bot.send_message(user_id, 
-            "<b>Error:</b> <code>Message format not a audio!</code>",
+            "<b>Error: </b> <code>Message format not a audio!</code>",
             parse_mode='html')
+        msg = bot.send_message(user_id, 
+            "Send me a <b>music!</b>",
+            reply_markup=exit_btn,
+            parse_mode='html')
+        bot.register_next_step_handler(msg, add_music)
 
 
 bot.enable_save_next_step_handlers(delay=2)
