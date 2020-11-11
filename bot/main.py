@@ -1,80 +1,123 @@
 #!/usr/bin/python3
+from telebot.types import Message
+from config.config import admin
+from config.texts import *
+from button import music_button, book_button
+from __init__ import bot, db
 
-import telebot
-# from telebot.types import Message
-from config.config import token
-
-bot = telebot.TeleBot(token)
 
 
-@bot.message_handler(commands=["start"])
-def welc(message):
-    """ This func for registrated users """
-
-    # welcome message
+# Bussines logic
+@bot.message_handler(func=lambda message: message.chat.id in admin, commands=["start"])
+def welc(message: Message):
+    user_id = message.from_user.id
+    
+    # hello message
     bot.send_message(
-        message.chat.id,
-        "Salom <b>{0.first_name}</b> \nMen - <b>{1.first_name}</b> man.\n<b>Bizning Kanal: </b> <a href='https://t.me/joinchat/AAAAAFbI79pDC_7LkK2BXA'>Python blog</a> <b>!!!</b>"
-        .format(message.from_user, bot.get_me()),
+        user_id,
+        hello_message_for_lord,
         parse_mode='html')
 
 
-# @bot.message_handler(commands=["python"])
-# def python_about(message: Message):
-# 	""" This func for registrated users """
+@bot.message_handler(func=lambda message: message.chat.id in admin, commands=["newbook"])
+def newbook(message: Message):
+    user_id = message.from_user.id
+    msg = bot.send_message(user_id, "Send me a book")
+    bot.register_next_step_handler(msg, handle_docs)
 
-# 	text = "Python ingiliz tiliga o'hshab oddiy o'qiladi python dasturlash tili c++ dasturlsh tilida yozilgan bo'lib uni buyuk dasturchi 'Gvido Van Rossum'-yaratgan.\n\
-# 			Python dasturlash tilining nomi umuman ilonlar ismidan olinmagan pythonni yozgan dasturchi bir kulgili shouni nomidan ko'chirgan shouning oti esa 'Monti pythonning uchar tsirki'-edi."
 
-# 	bot.send_message(message.chat.id, text,
-# 		parse_mode='html')
+@bot.message_handler(func=lambda message: message.chat.id in admin, content_types=['document'])
+def handle_docs(message):
+    user_id = message.from_user.id
+    db.add_book(file_name=message.document.file_name, file_id=message.document.file_id)
+    try:
+        bot.send_message(user_id, "Saved!")
+    except Exception as e:
+        bot.send_message(user_id, str(e))
 
-# @bot.message_handler(commands=["about"])
-# def about(message: Message):
-# 	""" This func for registrated users """
 
-# 	text = "Men o'zbek programistlariga yordam berish uchun yaratilgan botman"
+@bot.message_handler(func=lambda message: message.chat.id in admin, commands=['library'])
+def handle_archive(message):
+    user_id = message.from_user.id
+    
+    msg = bot.send_message(user_id, "List of books:", reply_markup=book_button)
+    bot.register_next_step_handler(msg, get_single_book)
 
-# 	bot.send_message(message.chat.id, text,
-# 		parse_mode='html')
 
-# @bot.message_handler(content_types=['text'])
-# @bot.edited_message_handler(content_types=['text'])
-# def text(message: Message):
+def get_single_book(message: Message):
+    user_id = message.from_user.id
+    book = db.get_book(message.text)
+    try:
+        msg = bot.send_document(user_id, book[0][2])
+        bot.register_next_step_handler(msg, get_single_book)
+    except Exception as e:
+        bot.send_message(user_id, "Error: "+str(e))
+        # hello message
+        msg = bot.send_message(
+                user_id,
+                hello_message_for_lord,
+                parse_mode='html')
+        bot.register_next_step_handler(msg, welc)
 
-# 	if message.chat.id in Mirsaid and '#mir' in message.text:
-# 		bot.send_message(message.chat.id, "Salom, Boss")
 
-# 	elif "Orqaga qaytish" in message.text:
-# 		bot.send_message(message.chat.id, "Bosh menyu", reply_markup=main_btn)
+@bot.message_handler(func=lambda message: message.chat.id in admin, commands=["newmusic"])
+def newmusic(message: Message):
+    user_id = message.from_user.id
+    msg = bot.send_message(user_id, "Send me a music")
+    bot.register_next_step_handler(msg, handle_music)
 
-# 	elif "📚Python darsliklar" in message.text:
-# 		bot.send_message(message.chat.id, "Qanaqa mavzuda dagi dars?", reply_markup=python_main_btn)
 
-# 	elif "Python-sintaksis" in message.text:
-# 		bot.send_message(message.chat.id, "Python 1-dars Malumotlar turlari <a href='https://telegra.ph/Python-boyicha-dars-1-Malumotlar-turlari-05-24'>Malumotlar turlari</a>",
-# 			parse_mode='html')
+@bot.message_handler(func=lambda message: message.chat.id in admin, content_types=['audio'])
+def handle_music(message):
+    # print(message.json['audio']['file_name'])
+    user_id = message.from_user.id
+    db.add_music(file_name=message.json['audio']['file_name'], file_id=message.json['audio']['file_id'])
+    try:
+        bot.send_message(user_id, "Saved!")
+    except Exception as e:
+        bot.send_message(user_id, str(e))
 
-# 		bot.send_message(message.chat.id, "Python 2-dars <a href='https://telegra.ph/Python-boyicha-2-dars-Operatorlar-va-tsikllar-05-25'>Operatlar va tsikllar</a>",
-# 			parse_mode='html')
 
-# 	elif "📣📣Foydali kanal va gruppalar!" in message.text:
-# 		bot.send_message(message.chat.id, foydali_kanallar,
-# 			parse_mode='html')
+@bot.message_handler(func=lambda message: message.chat.id in admin, commands=['playlist'])
+def handle_playlist(message):
+    user_id = message.from_user.id
+    
+    msg = bot.send_message(user_id, "List of books:", reply_markup=music_button)
+    bot.register_next_step_handler(msg, get_single_music)
 
-# 	elif "Bot info🤔" in message.text:
-# 		text = "Men o'zbek programistlariga yordam berish uchun yaratilgan botman"
 
-# 		bot.send_message(message.chat.id, text,
-# 			parse_mode='html')
+def get_single_music(message: Message):
+    user_id = message.from_user.id
+    music = db.get_music(message.text)
+    try:
+        msg = bot.send_audio(user_id, music[0][2])
+        bot.register_next_step_handler(msg, get_single_music)
+    except Exception as e:
+        bot.send_message(user_id, "Error: "+str(e))
+        # hello message
+        msg = bot.send_message(
+                user_id,
+                hello_message_for_lord,
+                parse_mode='html')
+        bot.register_next_step_handler(msg, welc)
 
-# 	elif "👨🏻‍💻Creator haqida ma'lumot!" in message.text:
-# 		bot.send_message(message.chat.id, crator,
-# 			parse_mode='html')
+
+@bot.message_handler(func=lambda message: message.chat.id in admin, content_types=['text'])
+@bot.edited_message_handler(func=lambda message: message.chat.id in admin, content_types=['text'])
+def text(message: Message):
+    user_id = message.from_user.id
+    lowercase = message.text.lower()
+    if lowercase == "i'm admin":
+        bot.send_message(user_id, "Hello admin")
+
+    if lowercase == "show me the admin panel":
+        bot.send_message(user_id, "Here it is")
+
+
+
 
 try:
     if __name__ == '__main__':
         bot.infinity_polling()
-except Exception as e:
-    with open("Teacher_robot/dat/erorr.log", "a") as erorr:
-        log = erorr.load()
+except Exception:
+    db.close()
