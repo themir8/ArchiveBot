@@ -130,5 +130,5 @@ dmypy.json
 
 
 # your
-bot/.handler-saves
-.handler-saves
+bot/.handler-saves/
+.handler-saves/
