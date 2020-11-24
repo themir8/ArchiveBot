@@ -2,6 +2,7 @@ from telebot.types import Message
 from config.config import admin
 from config.texts import *
 from button import music_button, book_button, main_btn, libr_menu_btn, playlist_menu_btn, exit_btn
+from button import playlist_menu_btn, exit_btn
 from __init__ import bot, db
 
 
@@ -89,24 +90,34 @@ def handle_docs(message):
         bot.register_next_step_handler(msg, main_handler)
 
     elif message.content_type == 'document':
-        db.add_book(file_name=message.document.file_name, file_id=message.document.file_id)
-        try:
-            bot.send_message(user_id, "Saved!")
+        if(not db.book_exists(message.document.file_name)):
+            db.add_book(file_name=message.document.file_name, file_id=message.document.file_id)
+            try:
+                bot.send_message(user_id, "Saved!")
 
-            msg=bot.send_message(
-                user_id,
-                hello_message_for_lord,
-                reply_markup=main_btn,
-                parse_mode='html')
-            bot.register_next_step_handler(msg, main_handler)
-        except Exception as e:
-            bot.send_message(user_id, str(e))
+                msg=bot.send_message(
+                    user_id,
+                    hello_message_for_lord,
+                    reply_markup=main_btn,
+                    parse_mode='html')
+                bot.register_next_step_handler(msg, main_handler)
+            except Exception as e:
+                bot.send_message(user_id, str(e))
 
+                msg=bot.send_message(
+                    user_id,
+                    hello_message_for_lord,
+                    reply_markup=main_btn,
+                    parse_mode='html')
+                bot.register_next_step_handler(msg, main_handler)
+        else:
+            bot.send_message(user_id,
+                "Bu fayl bazada bor")
             msg=bot.send_message(
-                user_id,
-                hello_message_for_lord,
-                reply_markup=main_btn,
-                parse_mode='html')
+                    user_id,
+                    hello_message_for_lord,
+                    reply_markup=main_btn,
+                    parse_mode='html')
             bot.register_next_step_handler(msg, main_handler)
     else:
         bot.send_message(user_id, 
@@ -166,24 +177,34 @@ def add_music(message):
         bot.register_next_step_handler(msg, main_handler)
 
     elif message.content_type == 'audio':
-        db.add_music(file_name=message.json['audio']['file_name'], file_id=message.json['audio']['file_id'])
-        try:
-            bot.send_message(user_id, "Saved!")
+        if(not db.music_exists(message.json['audio']['file_name'])):
+            db.add_music(file_name=message.json['audio']['file_name'], file_id=message.json['audio']['file_id'])
+            try:
+                bot.send_message(user_id, "Saved!")
 
-            msg=bot.send_message(
-                user_id,
-                hello_message_for_lord,
-                reply_markup=main_btn,
-                parse_mode='html')
-            bot.register_next_step_handler(msg, main_handler)
-        except Exception as e:
-            bot.send_message(user_id, str(e))
+                msg=bot.send_message(
+                    user_id,
+                    hello_message_for_lord,
+                    reply_markup=main_btn,
+                    parse_mode='html')
+                bot.register_next_step_handler(msg, main_handler)
+            except Exception as e:
+                bot.send_message(user_id, str(e))
 
+                msg=bot.send_message(
+                    user_id,
+                    hello_message_for_lord,
+                    reply_markup=main_btn,
+                    parse_mode='html')
+                bot.register_next_step_handler(msg, main_handler)
+        else:
+            bot.send_message(user_id,
+                "Bu fayl bazada bor")
             msg=bot.send_message(
-                user_id,
-                hello_message_for_lord,
-                reply_markup=main_btn,
-                parse_mode='html')
+                    user_id,
+                    hello_message_for_lord,
+                    reply_markup=main_btn,
+                    parse_mode='html')
             bot.register_next_step_handler(msg, main_handler)
     else:
         bot.send_message(user_id, 
@@ -196,9 +217,9 @@ def add_music(message):
         bot.register_next_step_handler(msg, add_music)
 
 
-bot.enable_save_next_step_handlers(delay=2)
+# bot.enable_save_next_step_handlers(delay=2)
 
-bot.load_next_step_handlers()
+# bot.load_next_step_handlers()
 
 
 

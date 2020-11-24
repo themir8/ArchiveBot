@@ -7,6 +7,16 @@ class DataBase:
         self.connection = sqlite3.connect(database, check_same_thread=False)
         self.cursor = self.connection.cursor()
 
+    def book_exists(self, file_name: str):
+        with self.connection:
+            result = self.cursor.execute('SELECT * FROM `books` WHERE `file_name` = ?', (file_name,)).fetchall()
+            return bool(len(result))
+
+    def music_exists(self, file_name: str):
+        with self.connection:
+            result = self.cursor.execute('SELECT * FROM `musics` WHERE `file_name` = ?', (file_name,)).fetchall()
+            return bool(len(result))
+
     def get_book(self, file_name: str):
         with self.connection:
             return self.cursor.execute("SELECT * FROM `books` WHERE `file_name` = ?", (file_name,)).fetchall()

@@ -9,9 +9,7 @@ from model.sqlite import DataBase # for sqlite
 bot = telebot.TeleBot(token)
 
 
-# db = DataBase() # for postgres
-
-
+# db = DataBase() # for posgres
 db = DataBase("sqlite.db") # for sqlite
 
 
